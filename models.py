@@ -15,7 +15,7 @@ class Users(Base):
     __tablename__ = "users"
     id = Column("id",Integer, primary_key=True, autoincrement=True, nullable=False)
     username = Column("username",String,nullable=False)
-    email = Column("email",String, unique=True)
+    email = Column("email",String, nullable=False)
     senha = Column("senha",String,nullable=False)
     pfp = Column("pfp",String)
 
