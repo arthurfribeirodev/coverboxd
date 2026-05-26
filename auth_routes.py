@@ -1,15 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Users,db
 from dependencies import session_grab
-from main import bcrypt_context
+from main import bcrypt_context, SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
 from schemas import UserSchema, loginSchema
+from jose import jwt, JWTError
+from datetime import datetime,timedelta,timezone 
+
 
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
 
 def  token_gen(id):
-    token = f"ekwqmkemkwqmkeqw{id}"
+    expire_date= datetime.now(timezone.utc) + timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+    dic_info = {"sub": id, "exp": expire_date}
+    token = jwt.encode(dic_info, SECRET_KEY, algorithm=ALGORITHM)
     return token
+
+
 
 @auth_router.post("/register")
 async def register(user_schema: UserSchema, session = Depends(session_grab)):
@@ -29,7 +36,7 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
     usuario = session.query(Users).filter(Users.email==login_schema.email).first()
     if not usuario:
         raise HTTPException(status_code=400, detail="Email inexistente")
-    if not bcrypt_context.verify(login_schema.senha, usuario.senha):
+    elif not bcrypt_context.verify(login_schema.senha, usuario.senha):
         raise HTTPException(status_code=400, detail="Senha incorreta")
     else:
         acess_token = token_gen(usuario.id)
