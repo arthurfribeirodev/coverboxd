@@ -13,5 +13,7 @@ app = FastAPI()
 bcrypt_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 from auth_routes import auth_router
+from reviews_routes import review_router
 
 app.include_router(auth_router)
+app.include_router(review_router)

@@ -73,9 +73,11 @@ class Rates(Base):
     cover_id = Column("cover_id",Integer, ForeignKey('covers.id'), nullable=False)
     artist_id = Column("artist_id",Integer, ForeignKey('artists.id'), nullable=False)
     rating = Column("rating",Integer, nullable=False)
+    comment = Column("comment",String)
 
-    def __init__(self, user_id, cover_id, artist_id, rating):
+    def __init__(self, user_id, cover_id, artist_id, rating, comment):
         self.user_id = user_id
         self.cover_id = cover_id
         self.artist_id = artist_id
         self.rating = rating
+        self.comment = comment
