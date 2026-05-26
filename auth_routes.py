@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Users,db
-from dependencies import session_grab
+from dependencies import session_grab,verify_token
 from main import bcrypt_context, SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
 from schemas import UserSchema, loginSchema
 from jose import jwt, JWTError
@@ -10,11 +10,12 @@ from datetime import datetime,timedelta,timezone
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
 
-def  token_gen(id):
-    expire_date= datetime.now(timezone.utc) + timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+def  token_gen(id, duration_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)):
+    expire_date= datetime.now(timezone.utc) + duration_token
     dic_info = {"sub": id, "exp": expire_date}
     token = jwt.encode(dic_info, SECRET_KEY, algorithm=ALGORITHM)
     return token
+
 
 
 
@@ -40,4 +41,20 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
         raise HTTPException(status_code=400, detail="Senha incorreta")
     else:
         acess_token = token_gen(usuario.id)
-        return {"acess_token": acess_token, "token_type": "bearer", "user_id": usuario.id}
+        refresh_token = token_gen(usuario.id, duration_token=timedelta(days=7))
+        return {
+            "acess_token": acess_token, 
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user_id": usuario.id
+            }
+    
+@auth_router.get("/refresh")
+async def refresh_token(user: Users = Depends(verify_token)):
+    acess_token = token_gen(user.id)
+    return {
+            "acess_token": acess_token, 
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user_id": user.id        
+            }

@@ -1,7 +1,9 @@
+from fastapi.security import OAuth2PasswordBearer
 from fastapi import FastAPI
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
+
 
 load_dotenv()
 
@@ -14,6 +16,7 @@ app = FastAPI()
 
 # Instalar Argon2
 bcrypt_context = CryptContext(schemes=["argon2"], deprecated="auto")
+oauth2_schme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 from auth_routes import auth_router
 from reviews_routes import review_router
