@@ -17,7 +17,8 @@ def verify_token(token: str = Depends(oauth2_schme), session: Session = Depends(
         try: 
             dic_info = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id = dic_info.get("sub")
-        except JWTError:
+        except JWTError as error:
+            print(error)
             raise HTTPException(status_code=401, detail="Token inválido")
         
         usertk = session.query(Users).filter(Users.id==user_id).first()
