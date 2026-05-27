@@ -4,6 +4,8 @@ from main import SECRET_KEY, ALGORITHM, oauth2_schme
 from jose import jwt,JWTError
 from fastapi import HTTPException, Depends
 
+    # Dependências para sessão de banco e verificação de token JWT
+
 def session_grab():
 
     try:

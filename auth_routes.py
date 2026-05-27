@@ -10,6 +10,8 @@ from datetime import datetime,timedelta,timezone
 auth_router = APIRouter(prefix="/auth",tags=["auth"])
 
 
+    # Geração do token JWT para autenticação
+
 def  token_gen(id, duration_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)):
     expire_date= datetime.now(timezone.utc) + duration_token
     dic_info = {"sub": str(id), "exp": expire_date}
@@ -18,7 +20,7 @@ def  token_gen(id, duration_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES))
 
 
 
-
+    # Metodo POST de registro, com verificação de email já registrado e hash de senha utilizando Argon2
 @auth_router.post("/register")
 async def register(user_schema: UserSchema, session = Depends(session_grab)):
 
@@ -32,6 +34,8 @@ async def register(user_schema: UserSchema, session = Depends(session_grab)):
         session.commit()
         return {"message": f"O email {user_schema.email} foi registrado com sucesso!"}
     
+
+    # Metodo POST de login, com verificação de email e senha, e geração de token JWT para autenticação
 @auth_router.post("/login")
 async def login(login_schema: loginSchema, session = Depends(session_grab)):
     usuario = session.query(Users).filter(Users.email==login_schema.email).first()
@@ -49,6 +53,8 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
             "user_id": usuario.id
             }
     
+
+    # Geração do Refresh Token 
 @auth_router.get("/refresh")
 async def refresh_token(user: Users = Depends(verify_token)):
     acess_token = token_gen(user.id)

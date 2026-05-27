@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Utilização de API do Spotify para buscar informações de álbuns e artistas
+
 auth_manager = SpotifyClientCredentials(client_id=os.getenv("SPOTIFY_CLIENT_ID"), client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"))
 spot = spotipy.Spotify(auth_manager=auth_manager)
 
