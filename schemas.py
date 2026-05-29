@@ -14,7 +14,6 @@ class UserSchema(BaseModel):
 
     #Schema da Review
 class ReviewSchema(BaseModel):
-    user_id: int
     cover_id: int
     artist_id: int
     rating: int = Field(...,le=5)
@@ -33,7 +32,6 @@ class loginSchema(BaseModel):
 
     #Schema para atualização de review
 class UpdateReviewSchema(BaseModel):
-    review_id: int
     rating: int = Field(...,le=5)
     comment: str | None = None
     

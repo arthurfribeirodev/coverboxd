@@ -29,7 +29,7 @@ app.add_middleware(
 
     # Criptografia de Senha e OAuth2
 bcrypt_context = CryptContext(schemes=["argon2"], deprecated="auto")
-oauth2_schme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_schme = OAuth2PasswordBearer(tokenUrl="/auth/login-form")
 
     # Importação das rotas de autenticação, reviews e álbuns, e inclusão no aplicativo FastAPI
 
