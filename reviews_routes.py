@@ -22,8 +22,10 @@ async def create_review(review_schema: ReviewSchema, session = Depends(session_g
     return {"message": f"Review criada com sucesso! ID: {new_review.id}"}
 
 @review_router.delete("/review/delete/{review_id}")
-async def delete_review(review_id: int, session = Depends(session_grab)):
+async def delete_review(review_id: int, session = Depends(session_grab), verified_user = Depends(verify_token)):
     review = session.query(Rates).filter(Rates.id == review_id).first()
+    if review.user_id != verified_user.id:
+        raise HTTPException(status_code=403, detail="Acesso negado: Você só pode deletar suas próprias reviews.")
     if review:
         session.delete(review)
         session.commit()
@@ -33,8 +35,10 @@ async def delete_review(review_id: int, session = Depends(session_grab)):
     
 
 @review_router.patch("/review/update/{review_id}")
-async def update_review(review_id: int, update_schema: UpdateReviewSchema, session = Depends(session_grab)):
+async def update_review(review_id: int, update_schema: UpdateReviewSchema, session = Depends(session_grab), verified_user = Depends(verify_token)):
     review = session.query(Rates).filter(Rates.id == review_id).first()
+    if review.user_id != verified_user.id:
+        raise HTTPException(status_code=403, detail="Acesso negado: Você só pode atualizar suas próprias reviews.")
     if review:
         review.rating = update_schema.rating
         review.comment = update_schema.comment
