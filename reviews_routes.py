@@ -13,7 +13,6 @@ async def create_review(review_schema: ReviewSchema, session = Depends(session_g
     new_review = Rates(
         user_id=user_id.id,
         cover_id=review_schema.cover_id,
-        artist_id=review_schema.artist_id,
         rating=review_schema.rating,
         comment=review_schema.comment
     )
@@ -21,7 +20,7 @@ async def create_review(review_schema: ReviewSchema, session = Depends(session_g
     session.commit()
     return {"message": f"Review criada com sucesso! ID: {new_review.id}"}
 
-@review_router.delete("/review/delete/{review_id}")
+@review_router.delete("/review/{review_id}")
 async def delete_review(review_id: int, session = Depends(session_grab), verified_user = Depends(verify_token)):
     review = session.query(Rates).filter(Rates.id == review_id).first()
     if review.user_id != verified_user.id:
@@ -34,7 +33,7 @@ async def delete_review(review_id: int, session = Depends(session_grab), verifie
         return {"message": f"Review com ID {review_id} não encontrada."}
     
 
-@review_router.patch("/review/update/{review_id}")
+@review_router.patch("/review/{review_id}")
 async def update_review(review_id: int, update_schema: UpdateReviewSchema, session = Depends(session_grab), verified_user = Depends(verify_token)):
     review = session.query(Rates).filter(Rates.id == review_id).first()
     if review.user_id != verified_user.id:
@@ -47,7 +46,7 @@ async def update_review(review_id: int, update_schema: UpdateReviewSchema, sessi
     else:
         return {"message": f"Review com ID {review_id} não encontrada."}
     
-@review_router.get("/reviews/{review_id}")
+@review_router.get("/review/{review_id}")
 async def get_review(review_id: int, session = Depends(session_grab)):
     review = session.query(Rates).filter(Rates.id == review_id).first()
     if not review:
