@@ -104,4 +104,8 @@ async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verif
         user.pfp = upd_schema.pfp
     session.commit()
     return {"message": "Usuário atualizado com sucesso! username: " + user.username + " email: " + user.email + " pfp: " + str(user.pfp)}
+
+@auth_router.get("/auth")
+async def auth_test(user: Users = Depends(verify_token)):
+    return {"message": f"Autenticação bem-sucedida! Bem-vindo, {user.username}!"}
     
