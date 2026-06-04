@@ -59,6 +59,34 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
             "user_id": usuario.id
             }
     
+@auth_router.get("/auth")
+async def auth_test(user: Users = Depends(verify_token)):
+    return {"message": f"Autenticação bem-sucedida! Bem-vindo, {user.username}!"}   
+
+@auth_router.patch("/update")
+async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verify_token), session = Depends(session_grab)):
+    if upd_schema.username is not None:
+        user.username = upd_schema.username
+    if upd_schema.email is not None:
+        email_check = session.query(Users).filter(Users.email==upd_schema.email).first()
+        if email_check and email_check.id != user.id:
+            raise HTTPException(status_code=400, detail="Email já registrado por outro usuário.")
+        user.email = upd_schema.email
+    if upd_schema.senha is not None:
+        user.senha = bcrypt_context.hash(upd_schema.senha)
+    if upd_schema.pfp is not None:
+        user.pfp = upd_schema.pfp
+    session.commit()
+    return {"message": "Usuário atualizado com sucesso! username: " + user.username + " email: " + user.email + " pfp: " + str(user.pfp)}
+
+@auth_router.delete("/remove")
+async def remove_user(user: Users = Depends(verify_token), session = Depends(session_grab)):
+    session.delete(user)
+    session.commit()
+    return {"message": "Usuário removido com sucesso!"}
+
+ 
+    
 @auth_router.post("/login-form")
 async def login_form(dados: OAuth2PasswordRequestForm = Depends(), session = Depends(session_grab)):
     user = authenticate_user(dados.username, dados.password, session)
@@ -83,29 +111,7 @@ async def refresh_token(user: Users = Depends(verify_token)):
             "user_id": user.id        
             }
 
-@auth_router.delete("/remove")
-async def remove_user(user: Users = Depends(verify_token), session = Depends(session_grab)):
-    session.delete(user)
-    session.commit()
-    return {"message": "Usuário removido com sucesso!"}
 
-@auth_router.patch("/update")
-async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verify_token), session = Depends(session_grab)):
-    if upd_schema.username is not None:
-        user.username = upd_schema.username
-    if upd_schema.email is not None:
-        email_check = session.query(Users).filter(Users.email==upd_schema.email).first()
-        if email_check and email_check.id != user.id:
-            raise HTTPException(status_code=400, detail="Email já registrado por outro usuário.")
-        user.email = upd_schema.email
-    if upd_schema.senha is not None:
-        user.senha = bcrypt_context.hash(upd_schema.senha)
-    if upd_schema.pfp is not None:
-        user.pfp = upd_schema.pfp
-    session.commit()
-    return {"message": "Usuário atualizado com sucesso! username: " + user.username + " email: " + user.email + " pfp: " + str(user.pfp)}
 
-@auth_router.get("/auth")
-async def auth_test(user: Users = Depends(verify_token)):
-    return {"message": f"Autenticação bem-sucedida! Bem-vindo, {user.username}!"}
+
     
