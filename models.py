@@ -25,53 +25,25 @@ class Users(Base):
         self.senha = senha
         self.pfp = pfp
 
-class Genres(Base):
-    __tablename__ = "genres"
-    id = Column("id",Integer, primary_key=True, autoincrement=True, nullable=False)
-    name = Column("name",String,nullable=False)
-    description = Column("description",String,nullable=False)
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
 
 class Covers(Base):
     __tablename__ = "covers"
     id = Column("id",Integer, primary_key=True, autoincrement=True, nullable=False)
     name = Column("name",String,nullable=False)
-    description = Column("description",String,nullable=False)
     image_url = Column("image_url",String,nullable=False)
-    genre_id = Column("genre_id",Integer, ForeignKey("genres.id"), nullable=False)
-    date = Column("date",String,nullable=False)
+    artist = Column("artist",String,nullable=False)
 
-    def __init__(self, name, description, image_url, genre_id, date):
+    def __init__(self, name, artist, image_url):
         self.name = name
-        self.description = description
+        self.artist = artist
         self.image_url = image_url
-        self.genre_id = genre_id
-        self.date = date
 
-
-class Artists(Base):
-    __tablename__ = 'artists'
-    id = Column("id",Integer, primary_key=True, autoincrement=True, nullable=False)
-    name = Column("name",String,nullable=False)
-    description = Column("description",String,nullable=False)
-    image_url = Column("image_url",String,nullable=False)
-    genre_id = Column("genre_id",Integer, ForeignKey("genres.id"), nullable=False)
-
-    def __init__(self, name, description, image_url, genre_id):
-        self.name = name
-        self.description = description
-        self.image_url = image_url
-        self.genre_id = genre_id
 
 class Rates(Base):
     __tablename__ = "rates"
     id = Column("id",Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column("user_id",Integer, ForeignKey('users.id'), nullable=False)
     cover_id = Column("cover_id",Integer, ForeignKey('covers.id'), nullable=False)
-    artist_id = Column("artist_id",Integer, ForeignKey('artists.id'), nullable=False)
     rating = Column("rating",Integer, nullable=False)
     comment = Column("comment",String)
 
