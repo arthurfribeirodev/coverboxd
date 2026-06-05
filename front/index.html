@@ -30,10 +30,31 @@
             </div>
         </div>
         <div>
-            <button style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#494949'" onmouseout="this.style.backgroundColor='#555'">Login</button>
-            <button style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#1a4a8c'" onmouseout="this.style.backgroundColor='#1c56a1'">Sign Up</button>
+            <button onclick="abrirLogin()" style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#494949'" onmouseout="this.style.backgroundColor='#555'">Login</button>
+            <button onclick="abrirSignUp()" style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#1a4a8c'" onmouseout="this.style.backgroundColor='#1c56a1'">Sign Up</button>
         </div>
     </header>
+
+    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+        <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 300px; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <h2 style="margin-top: 0;">Login</h2>
+            <input id="login-email" type="email" placeholder="Email" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            <input id="login-senha" type="password" placeholder="Senha" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            <button onclick="fazerLogin()" style="background-color: #555; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 0.5rem;">Entrar</button>
+            <button onclick="fecharModais()" style="background-color: transparent; color: #ccc; border: 1px solid #ccc; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="signup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+        <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 300px; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <h2 style="margin-top: 0;">Sign Up</h2>
+            <input id="signup-username" type="text" placeholder="Username" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            <input id="signup-email" type="email" placeholder="Email" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            <input id="signup-senha" type="password" placeholder="Senha" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            <button onclick="fazerSignUp()" style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 0.5rem;">Registrar</button>
+            <button onclick="fecharModais()" style="background-color: transparent; color: #ccc; border: 1px solid #ccc; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer;">Cancelar</button>
+        </div>
+    </div>
 
     <div id="results" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-top: 2rem; max-width: 1240px; width:75%; margin: 2rem auto;">
         <!-- Resultados de busca aparecerão aqui -->
@@ -56,6 +77,9 @@
                         albumDiv.style.textAlign = 'center';
                         albumDiv.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
                         albumDiv.style.color='#fff';
+
+                        albumDiv.style.cursor = 'pointer';
+                        albumDiv.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url);
 
                         const img = document.createElement('img');
                         img.src = album.image_url;
@@ -84,6 +108,107 @@
             } catch (error) {
                 console.error('Error fetching search results:', error);
                 divresults.textContent = 'An error occurred while searching.';
+            }
+        }
+
+// --- Funções Visuais (Modais) ---
+        function abrirLogin() {
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+
+        function abrirSignUp() {
+            document.getElementById('signup-modal').style.display = 'flex';
+        }
+
+        function fecharModais() {
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('signup-modal').style.display = 'none';
+        }
+
+        // --- Funções de Autenticação com o Backend ---
+        async function fazerSignUp() {
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const senha = document.getElementById('signup-senha').value;
+
+            try {
+                const response = await fetch('http://localhost:8000/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, email: email, senha: senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Conta criada com sucesso! Por favor, faça login.');
+                    fecharModais();
+                    abrirLogin(); // Autoredirect para login após registro
+                } else {
+                    alert('Erro ao registrar: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        async function fazerLogin() {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+
+            try {
+                const response = await fetch('http://localhost:8000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, senha: senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Login efetuado com sucesso!');
+
+                    localStorage.setItem('token', data.access_token); 
+                    fecharModais();
+                    
+                    console.log("Token guardado:", data.access_token);
+                } else {
+                    alert('Erro ao fazer login: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        async function salvarAlbumNoBanco(name, artist, image_url) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Por favor, faça login para salvar álbuns.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/albuns/', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: name, artist: artist, image_url: image_url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Álbum salvo com sucesso!');
+                } else {
+                    alert('Erro ao salvar álbum: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
             }
         }
     </script>
