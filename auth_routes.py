@@ -31,7 +31,6 @@ def authenticate_user(email: str, senha: str, session):
     # Metodo POST de registro, com verificação de email já registrado e hash de senha utilizando Argon2
 @auth_router.post("/register")
 async def register(user_schema: UserSchema, session = Depends(session_grab)):
-
     user = session.query(Users).filter(Users.email==user_schema.email).first()
     if user:
         raise HTTPException(status_code=400, detail="Email já registrado")
@@ -63,7 +62,7 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
 async def auth_test(user: Users = Depends(verify_token)):
     return {"message": f"Autenticação bem-sucedida! Bem-vindo, {user.username}!"}   
 
-@auth_router.patch("/update")
+@auth_router.patch("/")
 async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verify_token), session = Depends(session_grab)):
     if upd_schema.username is not None:
         user.username = upd_schema.username
@@ -79,7 +78,7 @@ async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verif
     session.commit()
     return {"message": "Usuário atualizado com sucesso! username: " + user.username + " email: " + user.email + " pfp: " + str(user.pfp)}
 
-@auth_router.delete("/remove")
+@auth_router.delete("/")
 async def remove_user(user: Users = Depends(verify_token), session = Depends(session_grab)):
     session.delete(user)
     session.commit()
