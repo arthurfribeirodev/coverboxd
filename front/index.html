@@ -7,28 +7,85 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/x-icon" href="imgs/coverboxd_logo.ico">
 </head>
-<body>
-    <header style="display: flex; align-items: center; padding: 1rem; background-color: #333; color: white; max-width: 1240px; width:75%; flex-direction: row; justify-content: space-between; margin: 0 auto; border-radius: 10px;">
+<body style="background-color: #0c0a09">
+    <header style="display: flex; align-items: center; padding: 1rem; background-color: #161412; color: white; max-width: 1240px; width:75%; flex-direction: row; justify-content: space-between; margin: 0 auto; border-radius: 15px; border-color:#292524;">
         <section class="logo">
-            <a href="#" style="color: white; text-decoration: none; align-items: center; display: flex;">
-                <img src="imgs/coverboxd_logo.png" alt="CoverBoxd Logo" style="height: 60px; margin-right: 0.5rem;">
+            <a href="#" style="color: white; text-decoration: none; align-items: center; display: flex; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 1.1rem; font-weight: bold;">
+                <img src="imgs/coverboxd_logo.png" alt="CoverBoxd Logo" style="height: 50px; margin-right: 0.5rem;">
                 Coverboxd
             </a>
         </section>
         <nav>
             <div>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem;">Home</a>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem;">Search</a>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem;">Albuns</a>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem;">Artists</a>
+            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Home</a>
+            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Albuns</a>
             </div>
         </nav>
-            <div>
-                <button style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Login</button>
-                <button style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Sign Up</button>
+        <div style="position: relative; margin-top: 0; width: 400px;">
+            <div style="position: relative; display: flex; align-items: center; background-color: #292524; padding: 0.5rem; border-radius: 25px;  ">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 0.5rem; margin-left: 0.5rem;">                   
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input onchange="Search(this.value)" id="search-input" type="text" placeholder="Search..." style="padding: 0.5rem; border-radius: 5px; border: none; background-color: transparent; color: white; width: 100%; outline: none; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             </div>
-
-
+        </div>
+        <div>
+            <button style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#494949'" onmouseout="this.style.backgroundColor='#555'">Login</button>
+            <button style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#1a4a8c'" onmouseout="this.style.backgroundColor='#1c56a1'">Sign Up</button>
+        </div>
     </header>
+
+    <div id="results" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-top: 2rem; max-width: 1240px; width:75%; margin: 2rem auto;">
+        <!-- Resultados de busca aparecerão aqui -->
+    </div>
+
+    <script>
+        async function Search(query) {
+            const quert = document.getElementById('search-input').value;
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = ''; // Limpa resultados anteriores
+
+            try{
+                const response = await fetch(`http://localhost:8000/albuns/search/${(query)}`);
+                const data = await response.json();
+
+                if (data.albuns && data.albuns.length > 0) {
+                    data.albuns.forEach(album => {
+                        const albumDiv = document.createElement('div');
+                        albumDiv.style.width = '150px';
+                        albumDiv.style.textAlign = 'center';
+                        albumDiv.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+                        albumDiv.style.color='#fff';
+
+                        const img = document.createElement('img');
+                        img.src = album.image_url;
+                        img.alt = album.name;
+                        img.style.width = '100%';
+                        img.style.borderRadius = '10px';
+
+                        const name = document.createElement('p');
+                        name.textContent = album.name;
+                        name.style.fontWeight = 'bold';
+                        name.style.marginTop = '0.5rem';
+
+                        const artist = document.createElement('p');
+                        artist.textContent = album.artist;
+                        artist.style.color = '#ffffe0';
+
+                        albumDiv.appendChild(img);
+                        albumDiv.appendChild(name);
+                        albumDiv.appendChild(artist);
+                        divresults.appendChild(albumDiv);
+                    });
+                } else {
+                    divresults.style.color = '#fff';
+                    divresults.textContent = 'No results found.';
+                }
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+                divresults.textContent = 'An error occurred while searching.';
+            }
+        }
+    </script>
 </body>
 </html>
