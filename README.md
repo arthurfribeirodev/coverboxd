@@ -35,8 +35,6 @@ O domínio possui **três entidades relacionadas**:
 | Frontend | HTML + CSS + JavaScript (`fetch`) |
 | Documentação da API | Swagger UI e ReDoc (gerados automaticamente pelo FastAPI) |
 
-> **Nota sobre o banco de dados:** o trabalho prático recomenda MongoDB ou outro banco NoSQL. Esta versão do projeto utiliza **SQLite** com SQLAlchemy. A conexão está definida em `models.py` e nas migrações do Alembic (`sqlite:///database.db`).
-
 ---
 
 ## Estrutura do repositório
@@ -55,6 +53,7 @@ coverboxd/
 ├── alembic.ini
 ├── front/
 │   └── index.html       # Interface web (SPA simples com navegação assíncrona)
+├── requirements.txt     # Arquivo de Dependências
 ├── .env                 # Variáveis de ambiente (não versionar)
 └── database.db          # Banco SQLite (gerado após migração)
 ```
@@ -103,10 +102,10 @@ source venv/bin/activate
 
 ### 3. Instalar dependências
 
-O projeto não possui `requirements.txt` na raiz. Instale os pacotes principais manualmente:
+O projeto possui `requirements.txt` na raiz.
 
 ```bash
-pip install fastapi uvicorn sqlalchemy alembic python-dotenv passlib[argon2] python-jose[cryptography] python-multipart spotipy requests pydantic
+pip install -r requirements.txt
 ```
 
 ### 4. Configurar variáveis de ambiente
@@ -132,7 +131,6 @@ SPOTIFY_CLIENT_SECRET=seu_client_secret
 | `SPOTIFY_CLIENT_ID` | Client ID do app no Spotify Developer | `abc123...` |
 | `SPOTIFY_CLIENT_SECRET` | Client Secret do app no Spotify Developer | `xyz789...` |
 
-> **Importante:** nunca commite o arquivo `.env` no repositório. Adicione-o ao `.gitignore`.
 
 ### 5. Criar o banco de dados
 
@@ -153,7 +151,7 @@ Isso cria o arquivo `database.db` com as tabelas `users`, `covers` e `rates`.
 Com o ambiente virtual ativado, na raiz do projeto:
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload
 ```
 
 A API ficará disponível em: **http://localhost:8000**
@@ -271,21 +269,10 @@ O token JWT é armazenado em `localStorage` e enviado no header `Authorization: 
 | Requisito | Status | Observação |
 |-----------|--------|------------|
 | REST API com CRUD (2+ entidades) | Atendido | Entidades **Álbuns** e **Reviews**, com operações completas |
-| Banco NoSQL | Parcial | Utiliza **SQLite** (SQL). Migração para MongoDB é recomendada para atender plenamente o critério |
+| Banco NoSQL | Exceção | Utiliza **SQLite** (SQL). Permitido pelo Professor |
 | Documentação OpenAPI/Swagger | Atendido | Disponível em `/docs` e `/redoc` |
 | README com instruções | Atendido | Este documento |
 | Página web com navegação assíncrona | Atendido | `front/index.html` com `fetch` e atualização dinâmica do DOM |
-
-### Requisitos bônus
-
-| Bônus | Status | Observação |
-|-------|--------|------------|
-| **A — JWT e autenticação** | Atendido | Registro, login, token com expiração e rotas protegidas |
-| **B — RBAC (perfis)** | Não implementado | Há verificação de propriedade (usuário só edita/deleta suas reviews), mas sem perfis `admin`/`usuario` |
-| **C — Testes unitários** | Não implementado | O arquivo `tests.py` contém apenas um script manual de teste, não uma suíte automatizada |
-| **D — Princípios SOLID** | Parcial | Separação em rotas, schemas, models e services; documentação detalhada em `SOLID.md` ainda não criada |
-
----
 
 ## Fluxo de uso sugerido
 
@@ -308,24 +295,6 @@ O token JWT é armazenado em `localStorage` e enviado no header `Authorization: 
 - A `SECRET_KEY` e as credenciais do Spotify devem permanecer apenas no `.env`.
 
 ---
-
-## Entregáveis acadêmicos
-
-Conforme o enunciado do trabalho:
-
-1. **Repositório GitHub** com histórico de commits — entrega até **30/05/2026**.
-2. **Apresentação presencial** na semana 15 (**01/06 a 05/06/2026**) — demonstração ao vivo e perguntas técnicas sobre o código.
-
----
-
-## Possíveis melhorias futuras
-
-- Migrar persistência para **MongoDB** (requisito recomendado do trabalho).
-- Implementar **RBAC** com perfis `admin` e `usuario`.
-- Adicionar suíte de **testes unitários** com `pytest`.
-- Criar `requirements.txt` e `docker-compose.yml` para facilitar setup.
-- Documentar princípios **SOLID** aplicados em `SOLID.md`.
-- Adicionar endpoint `GET /albuns/{id}` para busca individual de álbum.
 
 ---
 
