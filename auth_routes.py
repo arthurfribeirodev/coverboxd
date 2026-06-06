@@ -56,7 +56,8 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "user_id": usuario.id,
-            "pfp": usuario.pfp
+            "pfp": usuario.pfp,
+            "username": usuario.username
             }
     
 @auth_router.get("/auth")
@@ -77,7 +78,10 @@ async def update_user(upd_schema : UpdateUserSchema, user: Users = Depends(verif
     if upd_schema.pfp is not None:
         user.pfp = upd_schema.pfp
     session.commit()
-    return {"message": "Usuário atualizado com sucesso! username: " + user.username + " email: " + user.email + " pfp: " + str(user.pfp)}
+    return {"message": "Usuário atualizado com sucesso!",
+            "username": user.username,
+            "email": user.email,
+            "pfp": user.pfp}
 
 @auth_router.delete("/")
 async def remove_user(user: Users = Depends(verify_token), session = Depends(session_grab)):

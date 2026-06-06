@@ -8,13 +8,16 @@
     <link rel="icon" type="image/x-icon" href="imgs/coverboxd_logo.ico">
 </head>
 <body style="background-color: #0c0a09">
+    <!-- --- Cabeçalho --- -->
     <header style="display: flex; align-items: center; padding: 1rem; background-color: #161412; color: white; max-width: 1240px; width:75%; flex-direction: row; justify-content: space-between; margin: 0 auto; border-radius: 15px; border-color:#292524;">
+        <!-- Logo e Nome do Site -->
         <section class="logo">
             <a href="#" style="color: white; text-decoration: none; align-items: center; display: flex; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 1.1rem; font-weight: bold;">
                 <img src="imgs/coverboxd_logo.png" alt="CoverBoxd Logo" style="height: 50px; margin-right: 0.5rem;">
                 Coverboxd
             </a>
         </section>
+        <!-- Navegação -->
         <nav>
             <div>
             <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" onclick="limpar()">Home</a>
@@ -22,6 +25,7 @@
             <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" onclick="abrirReviews()">Reviews</a>
             </div>
         </nav>
+            <!-- Pesquisa -->
         <div style="position: relative; margin-top: 0; width: 400px;">
             <div style="position: relative; display: flex; align-items: center; background-color: #292524; padding: 0.5rem; border-radius: 25px;  ">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 0.5rem; margin-left: 0.5rem;">                   
@@ -30,12 +34,21 @@
                 <input onchange="Search(this.value)" id="search-input" type="text" placeholder="Search..." style="padding: 0.5rem; border-radius: 5px; border: none; background-color: transparent; color: white; width: 100%; outline: none; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             </div>
         </div>
-        <div>
+            <!-- Botões de Login/Sign Up ou Perfil do Usuário -->
+        <div id="auth-buttons">
             <button onclick="abrirLogin()" style="background-color: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#494949'" onmouseout="this.style.backgroundColor='#555'">Login</button>
             <button onclick="abrirSignUp()" style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" onmouseover="this.style.backgroundColor='#1a4a8c'" onmouseout="this.style.backgroundColor='#1c56a1'">Sign Up</button>
         </div>
+        <div id="user-profile" style="display: none; align-items: center; cursor: pointer;" onclick="abrirPerfil()">
+            <span id="user-name-text" style="color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 1rem; font-weight: 500; margin-right: 0.5rem;"></span>
+            <img id="user-pfp-img" src="https://via.placeholder.com/40" alt="Perfil" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1c56a1; object-fit: cover;">
+        </div>
     </header>
 
+    <!-- Modais --> 
+
+
+    <!-- Modal de Login -->
     <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
         <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 300px; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <h2 style="margin-top: 0;">Login</h2>
@@ -46,6 +59,7 @@
         </div>
     </div>
 
+    <!-- Modal de SingUp -->
     <div id="signup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
         <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 300px; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
             <h2 style="margin-top: 0;">Sign Up</h2>
@@ -57,15 +71,50 @@
         </div>
     </div>
 
-    <div>
-        
+    <!-- Modal de Perfil -->
+    <div id="user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 300px; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <h2 style="margin-top: 0;">Meu Perfil</h2>
+            
+            <label style="font-size: 0.8rem; color: #aaa;">Novo nome:</label>
+            <input id="update-username" type="text" placeholder="Deixe em branco para manter" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            
+            <label style="font-size: 0.8rem; color: #aaa;">Nova Imagem:</label>
+            <input id="update-pfp" type="text" placeholder="example.png" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none; box-sizing: border-box;">
+            
+            <button onclick="atualizarConta()" style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 0.5rem;">Atualizar Informações</button>
+            <button onclick="fazerLogoff()" style="background-color: #555; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 0.5rem;">Fazer Logoff</button>
+            <button onclick="deletarConta()" style="background-color: #7f1d1d; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-bottom: 0.5rem;">Deletar Conta</button>
+            <button onclick="fecharModais()" style="background-color: transparent; color: #ccc; border: 1px solid #ccc; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer;">Cancelar</button>
+        </div>
     </div>
+
 
     <div id="results" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-top: 2rem; max-width: 1240px; width:75%; margin: 2rem auto;">
         <!-- Resultados de busca aparecerão aqui -->
     </div>
 
     <script>
+        // Verificar se o usuário já está logado ao carregar a página
+        window.onload = function() {
+            verifyLogin();
+        };
+        function verifyLogin(){
+            const token = localStorage.getItem('token');
+            const pfpurl = localStorage.getItem('pfp') || 'https://i.imgur.com/JbO4hfw.png';
+            const username = localStorage.getItem('username') || 'UserTemplate';
+
+            if (token) {
+                document.getElementById('auth-buttons').style.display = 'none';
+                document.getElementById('user-profile').style.display = 'flex';
+                document.getElementById('user-pfp-img').src = pfpurl;
+                document.getElementById('user-name-text').textContent = username;
+            } else {
+                document.getElementById('auth-buttons').style.display = 'block';
+                document.getElementById('user-profile').style.display = 'none';
+            }
+        }
+
 
         // --- Função de Pesquisa ---
         async function Search(query) {
@@ -138,6 +187,15 @@
         }
 
 // --- Funções Visuais (Modais) ---
+        async function abrirReviews(){
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = '';
+
+        }
+        async function limpar(){
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = '';
+        }
         function abrirLogin() {
             document.getElementById('login-modal').style.display = 'flex';
         }
@@ -146,12 +204,21 @@
             document.getElementById('signup-modal').style.display = 'flex';
         }
 
+        function abrirPerfil() {
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
         function fecharModais() {
             document.getElementById('login-modal').style.display = 'none';
             document.getElementById('signup-modal').style.display = 'none';
+            document.getElementById('user-modal').style.display = 'none';
         }
 
         // --- Funções de Autenticação com o Backend ---
+
+    // -- CRUD AUTH --
+
+            // Registro (POST)
         async function fazerSignUp() {
             const username = document.getElementById('signup-username').value;
             const email = document.getElementById('signup-email').value;
@@ -178,7 +245,7 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
-
+            // Login (POST)
         async function fazerLogin() {
             const email = document.getElementById('login-email').value;
             const senha = document.getElementById('login-senha').value;
@@ -196,8 +263,17 @@
                     alert('Login efetuado com sucesso!');
 
                     localStorage.setItem('token', data.access_token); 
+                    if (data.pfp) {
+                        localStorage.setItem('pfp', data.pfp);
+                        document.getElementById('user-pfp-img').src = data.pfp;
+                    }
+                    if (data.username) {
+                        localStorage.setItem('username', data.username);
+                        document.getElementById('user-name-text').textContent = data.username;
+
+                    }
                     fecharModais();
-                    
+                    verifyLogin(); // Atualiza a interface para mostrar o perfil do usuário
                     console.log("Token guardado!");
                 } else {
                     alert('Erro ao fazer login: ' + data.detail);
@@ -207,6 +283,94 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
+
+        // -- Atualizar (PATCH)
+        async function atualizarConta() {
+            const token = localStorage.getItem('token');
+            const newUsername = document.getElementById('update-username').value;
+            const newPfp = document.getElementById('update-pfp').value;
+
+            const bodyDT ={};
+            if (newUsername) bodyDT.username = newUsername;
+            if (newPfp) bodyDT.pfp = newPfp;
+
+            if (Object.keys(bodyDT).length === 0){
+                alert('Por favor, preencha pelo menos um campo para atualizar.');
+                return;
+            }
+
+            try{
+                const response = await fetch("http://localhost:8000/auth/", {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bodyDT)
+            });
+
+            const data = await response.json();
+
+            if (response.ok){
+                alert('Informações atualizadas com sucesso!');
+                if (data.username) {
+                    localStorage.setItem('username', data.username);
+                    document.getElementById('user-name-text').textContent = data.username;
+                }
+                if (data.pfp) {
+                    localStorage.setItem('pfp', data.pfp);
+                    document.getElementById('user-pfp-img').src = data.pfp;
+                }
+                fecharModais();
+                verifyLogin(); // Atualiza a interface para refletir as novas informações
+            } else {
+                alert('Erro ao atualizar informações: ' + data.detail);
+            }
+            }catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        // -- Deletar Conta (DELETE)
+        async function deletarConta() {
+            const del = confirm("Tem certeza que deseja deletar sua conta? Esta ação é irreversível.");
+            if (!del) return;
+
+            const token = localStorage.getItem('token');
+
+            try{
+                const response = await fetch("http://localhost:8000/auth/",{
+                    "method": 'DELETE',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok){
+                    alert('Conta foi deletada com sucesso. Sentiremos sua falta!');
+                    fazerLogoff(); // Limpa o localStorage e atualiza a interface
+                } else{
+                    const data = await response.json();
+                    alert('Erro ao deletar conta:' + data.detail);
+                }
+            } catch(error){
+                console.error("Erro:", error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+            // Logoff (Limpar LocalStorage)
+        function fazerLogoff() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('pfp');
+            localStorage.removeItem('username');
+            fecharModais();
+            verifyLogin(); // Atualiza a interface para mostrar os botões de login/signup
+            alert('Você saiu da sua conta.');
+        }
+
+
+
+
         // Salva o álbum no banco de dados do backend, associando-o ao usuário logado
         async function salvarAlbumNoBanco(name, artist, image_url) {
             const token = localStorage.getItem('token');
@@ -248,6 +412,7 @@
                         return; // Sai da função após atualizar
                     }
                 }
+
                 // Se o álbum não existe, faz um POST para criar um novo álbum
                 const response = await fetch('http://localhost:8000/albuns/', {
                     method: 'POST',
@@ -271,7 +436,7 @@
             }
         }
 
-
+        // Função para buscar e exibir os álbuns salvos 
         async function abrirAlbuns(){
             const token = localStorage.getItem('token');
             if (!token) {
@@ -356,17 +521,6 @@
             }
         }
 
-        async function abrirReviews(){
-            const divresults = document.getElementById('results');
-            divresults.innerHTML = '';
-
-
-        }
-        
-        async function limpar(){
-            const divresults = document.getElementById('results');
-            divresults.innerHTML = '';
-        }
 
 
     </script>
