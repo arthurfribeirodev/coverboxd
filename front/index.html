@@ -89,6 +89,25 @@
         </div>
     </div>
 
+    <div id="reviews-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background-color: #292524; padding: 2rem; border-radius: 10px; width: 500px; max-height: 80vh; overflow-y: auto; color: white; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            
+            <h2 id="review-album-title" style="margin-top: 0;">Reviews do Álbum</h2>
+            
+            <div style="background-color: #161412; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h4 style="margin-top: 0;">Deixe sua Review</h4>
+                <input id="new-review-rating" type="number" min="1" max="5" placeholder="Nota (1 a 5)" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 5px; border: none; box-sizing: border-box;">
+                <textarea id="new-review-comment" placeholder="Escreva seu comentário..." style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 5px; border: none; box-sizing: border-box; resize: none; height: 60px;"></textarea>
+                <button id="btn-salvar-review" style="background-color: #1c56a1; color: white; border: none; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer;">Publicar Review</button>
+            </div>
+
+            <div id="reviews-list-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                </div>
+
+            <button onclick="document.getElementById('reviews-modal').style.display='none'" style="background-color: transparent; color: #ccc; border: 1px solid #ccc; padding: 0.5rem; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 1rem;">Fechar</button>
+        </div>
+    </div>
+
 
     <div id="results" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-top: 2rem; max-width: 1240px; width:75%; margin: 2rem auto;">
         <!-- Resultados de busca aparecerão aqui -->
@@ -263,6 +282,7 @@
                     alert('Login efetuado com sucesso!');
 
                     localStorage.setItem('token', data.access_token); 
+                    localStorage.setItem('user_id', data.user_id);
                     if (data.pfp) {
                         localStorage.setItem('pfp', data.pfp);
                         document.getElementById('user-pfp-img').src = data.pfp;
@@ -476,7 +496,7 @@
                             img.style.cursor = 'pointer';
                             img.onmouseover = () => img.style.transform = 'scale(1.05)';
                             img.onmouseout = () => img.style.transform = 'scale(1)';
-                            img.onclick = () => fazerReview(album.name, album.artist, album.image_url); // Função para abrir modal de review
+                            img.onclick = () => abrirModalReviews(album.id, album.name); // Função para abrir modal de review
 
 
                             const name = document.createElement('p');
@@ -499,7 +519,7 @@
                             reviewButton.style.transition = 'background-color 0.2s';
                             reviewButton.onmouseover = () => reviewButton.style.backgroundColor = '#1a4a8c';
                             reviewButton.onmouseout = () => reviewButton.style.backgroundColor = '#1c56a1';
-                            reviewButton.onclick = () => fazerReview(album.name, album.artist, album.image_url);
+                            reviewButton.onclick = () => abrirModalReviews(album.id, album.name);
 
 
                             albumDiv.appendChild(img);
@@ -520,7 +540,305 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
+// --- FUNÇÕES DE REVIEWS E ÁLBUNS ---
 
+        // Aba "REVIEWS" (Lista as reviews dos álbuns na tela principal)
+        async function abrirReviews() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Por favor, faça login para ver as reviews.');
+                return;
+            }
+
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = '<p style="color: white; width: 100%; text-align: center;">Carregando reviews...</p>';
+            const meuUserId = localStorage.getItem('user_id');
+
+            try {
+                // 1. Busca os álbuns salvos para saber onde procurar as reviews
+                const albunsRes = await fetch('http://localhost:8000/albuns/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!albunsRes.ok) throw new Error("Erro ao carregar albuns");
+                const albuns = await albunsRes.json();
+
+                divresults.innerHTML = '';
+
+                if (albuns.length === 0) {
+                    divresults.innerHTML = '<p style="color: white; width: 100%; text-align: center;">Você não possui álbuns salvos para buscar reviews.</p>';
+                    return;
+                }
+
+                // 2. Busca as reviews de cada álbum iterativamente
+                for (const album of albuns) {
+                    const revRes = await fetch(`http://localhost:8000/reviews/album/${album.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (revRes.ok) {
+                        const reviews = await revRes.json();
+                        
+                        if (reviews.length > 0) {
+                            // Criação de um container para as reviews desse álbum específico
+                            const albumContainer = document.createElement('div');
+                            albumContainer.style.width = '100%';
+                            albumContainer.style.marginBottom = '2rem';
+                            albumContainer.style.color = 'white';
+                            albumContainer.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+                            const title = document.createElement('h3');
+                            title.textContent = `Reviews de: ${album.name}`;
+                            title.style.borderBottom = '1px solid #555';
+                            title.style.paddingBottom = '0.5rem';
+                            albumContainer.appendChild(title);
+
+                            reviews.forEach(review => {
+                                const revDiv = document.createElement('div');
+                                revDiv.style.backgroundColor = '#161412';
+                                revDiv.style.padding = '1rem';
+                                revDiv.style.borderRadius = '8px';
+                                revDiv.style.marginTop = '1rem';
+
+                                revDiv.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong>User #${review.user_id}</strong>
+                                        <span style="color: gold;">Nota: ${review.rating}/5</span>
+                                    </div>
+                                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #ddd;">${review.comment || 'Sem comentário.'}</p>
+                                `;
+
+                                // Se for do usuário logado, permite Editar/Apagar
+                                if (String(review.user_id) === String(meuUserId)) {
+                                    const actionsDiv = document.createElement('div');
+                                    actionsDiv.style.marginTop = '0.5rem';
+
+                                    const btnEdit = document.createElement('button');
+                                    btnEdit.textContent = 'Editar';
+                                    btnEdit.style = 'background: #555; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; margin-right: 0.5rem; font-size: 0.8rem;';
+                                    btnEdit.onclick = () => atualizarReview(review.id, prompt("Nova nota (1-5):", review.rating), prompt("Novo comentário:", review.comment), false);
+
+                                    const btnDelete = document.createElement('button');
+                                    btnDelete.textContent = 'Apagar';
+                                    btnDelete.style = 'background: #7f1d1d; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.8rem;';
+                                    btnDelete.onclick = () => deletarReview(review.id, false);
+
+                                    actionsDiv.appendChild(btnEdit);
+                                    actionsDiv.appendChild(btnDelete);
+                                    revDiv.appendChild(actionsDiv);
+                                }
+                                albumContainer.appendChild(revDiv);
+                            });
+                            divresults.appendChild(albumContainer);
+                        }
+                    }
+                }
+
+                if (divresults.innerHTML === '') {
+                    divresults.innerHTML = '<p style="color: white; width: 100%; text-align: center;">Nenhuma review encontrada nos seus álbuns.</p>';
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                divresults.innerHTML = '<p style="color: red; width: 100%; text-align: center;">Erro de conexão ao carregar as reviews.</p>';
+            }
+        }
+
+        // Criar (POST)
+        async function fazerReview(coverId, rating, comment) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Você precisa estar logado para fazer review.");
+                return false;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/reviews/review', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ cover_id: coverId, rating: parseInt(rating), comment: comment })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("Review criada com sucesso!");
+                    return true;
+                } else {
+                    alert("Erro ao criar review: " + data.detail);
+                    return false;
+                }
+            } catch(error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+                return false;
+            }
+        }
+
+        // Atualizar (PATCH)
+        async function atualizarReview(reviewId, novoRating, novoComment, isModalContext, coverId, coverName) {
+            if (!novoRating || !novoComment) return; // Cancela se o prompt for vazio
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews/review/${reviewId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        rating: parseInt(novoRating),
+                        comment: novoComment
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Review atualizada com sucesso!');
+                    // Recarrega o conteúdo dependendo de onde o usuário está
+                    if (isModalContext) {
+                        abrirModalReviews(coverId, coverName); 
+                    } else {
+                        abrirReviews();
+                    }
+                } else {
+                    alert('Erro ao atualizar review: ' + (data.detail || data.message));
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        // Deletar (DELETE)
+        async function deletarReview(reviewId, isModalContext, coverId, coverName) {
+            const confirmacao = confirm("Tem certeza que deseja deletar esta review?");
+            if (!confirmacao) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews/review/${reviewId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Review deletada com sucesso!');
+                    // Recarrega o conteúdo dependendo de onde o usuário está
+                    if (isModalContext) {
+                        abrirModalReviews(coverId, coverName);
+                    } else {
+                        abrirReviews();
+                    }
+                } else {
+                    alert('Erro ao deletar review: ' + (data.detail || data.message));
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        // Modal de Reviews do Álbum Específico (GET /album/{cover_id})
+        async function abrirModalReviews(coverId, coverName) {
+            document.getElementById('review-album-title').textContent = "Reviews de " + coverName;
+            document.getElementById('reviews-modal').style.display = 'flex';
+            
+            // Função para publicar review com recarregamento em tempo real
+            document.getElementById('btn-salvar-review').onclick = async () => {
+                const rating = document.getElementById('new-review-rating').value;
+                const comment = document.getElementById('new-review-comment').value;
+
+                if (!rating || !comment) {
+                    alert("Por favor, preencha a nota e o comentário.");
+                    return;
+                }
+
+                const sucesso = await fazerReview(coverId, rating, comment);
+                if (sucesso) {
+                    // Limpa os campos e recarrega as reviews do álbum no modal
+                    document.getElementById('new-review-rating').value = '';
+                    document.getElementById('new-review-comment').value = '';
+                    abrirModalReviews(coverId, coverName); 
+                }
+            };
+            
+            const container = document.getElementById('reviews-list-container');
+            container.innerHTML = '<p>Carregando reviews...</p>';
+
+            const token = localStorage.getItem('token');
+            const meuUserId = localStorage.getItem('user_id'); 
+
+            try {
+                // ROTA CORRIGIDA PARA BATER COM O BACKEND
+                const response = await fetch(`http://localhost:8000/reviews/album/${coverId}`, {
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const reviews = await response.json();
+                    container.innerHTML = '';
+
+                    if (reviews.length === 0) {
+                        container.innerHTML = '<p style="color: #aaa;">Ainda não há reviews para este álbum. Seja o primeiro!</p>';
+                        return;
+                    }
+
+                    reviews.forEach(review => {
+                        const reviewDiv = document.createElement('div');
+                        reviewDiv.style.backgroundColor = '#161412';
+                        reviewDiv.style.padding = '1rem';
+                        reviewDiv.style.borderRadius = '8px';
+
+                        reviewDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>User #${review.user_id}</strong>
+                                <span style="color: gold;">Nota: ${review.rating}/5</span>
+                            </div>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #ddd;">${review.comment || 'Sem comentário.'}</p>
+                        `;
+
+                        if (String(review.user_id) === String(meuUserId)) {
+                            const btnEdit = document.createElement('button');
+                            btnEdit.textContent = 'Editar';
+                            btnEdit.style = 'background: #555; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; margin-right: 0.5rem; font-size: 0.8rem;';
+                            // isModalContext = true (passando IDs do cover para fazer o reload correto da modal)
+                            btnEdit.onclick = () => atualizarReview(review.id, prompt("Nova nota (1-5):", review.rating), prompt("Novo comentário:", review.comment), true, coverId, coverName); 
+
+                            const btnDelete = document.createElement('button');
+                            btnDelete.textContent = 'Apagar';
+                            btnDelete.style = 'background: #7f1d1d; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.8rem;';
+                            btnDelete.onclick = () => deletarReview(review.id, true, coverId, coverName);
+
+                            const actionsDiv = document.createElement('div');
+                            actionsDiv.style.marginTop = '0.5rem';
+                            actionsDiv.appendChild(btnEdit);
+                            actionsDiv.appendChild(btnDelete);
+                            
+                            reviewDiv.appendChild(actionsDiv);
+                        }
+                        container.appendChild(reviewDiv);
+                    });
+                } else {
+                    container.innerHTML = '<p style="color: red;">Erro ao carregar reviews.</p>';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="color: red;">Erro de conexão com o servidor.</p>';
+            }
+        }
 
 
     </script>

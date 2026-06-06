@@ -52,3 +52,8 @@ async def get_review(review_id: int, session = Depends(session_grab)):
     if not review:
         raise HTTPException(status_code=404, detail=f"Review ID {review_id} não encontrada.")
     return review
+
+@review_router.get("/album/{cover_id}")
+async def get_reviews_by_album(cover_id: int, session = Depends(session_grab)):
+    reviews = session.query(Rates).filter(Rates.cover_id == cover_id).all()
+    return reviews

@@ -47,9 +47,8 @@ class Rates(Base):
     rating = Column("rating",Integer, nullable=False)
     comment = Column("comment",String)
 
-    def __init__(self, user_id, cover_id, artist_id, rating, comment):
+    def __init__(self, user_id, cover_id,rating, comment):
         self.user_id = user_id
         self.cover_id = cover_id
-        self.artist_id = artist_id
         self.rating = rating
         self.comment = comment
