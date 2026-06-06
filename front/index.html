@@ -17,8 +17,9 @@
         </section>
         <nav>
             <div>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Home</a>
-            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Albuns</a>
+            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" onclick="limpar()">Home</a>
+            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" onclick="abrirAlbuns()">Albuns</a>
+            <a href="#" style="color: white; text-decoration: none; margin-right: 1rem; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;" onclick="abrirReviews()">Reviews</a>
             </div>
         </nav>
         <div style="position: relative; margin-top: 0; width: 400px;">
@@ -61,6 +62,8 @@
     </div>
 
     <script>
+
+        // --- Função de Pesquisa ---
         async function Search(query) {
             const quert = document.getElementById('search-input').value;
             const divresults = document.getElementById('results');
@@ -72,33 +75,52 @@
 
                 if (data.albuns && data.albuns.length > 0) {
                     data.albuns.forEach(album => {
-                        const albumDiv = document.createElement('div');
+                        const albumDiv = document.createElement('div'); // Cria a DIV
                         albumDiv.style.width = '150px';
                         albumDiv.style.textAlign = 'center';
                         albumDiv.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
                         albumDiv.style.color='#fff';
 
-                        albumDiv.style.cursor = 'pointer';
-                        albumDiv.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url);
 
-                        const img = document.createElement('img');
+                        const img = document.createElement('img'); // Img
                         img.src = album.image_url;
                         img.alt = album.name;
                         img.style.width = '100%';
                         img.style.borderRadius = '10px';
+                        img.style.transition = 'transform 0.2s'; // Animação suave
+                        img.style.cursor = 'pointer';
+                        img.onmouseover = () => img.style.transform = 'scale(1.05)';
+                        img.onmouseout = () => img.style.transform = 'scale(1)';
+                        img.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url); // Salva ao clicar na imagem
 
-                        const name = document.createElement('p');
+                        const name = document.createElement('p'); // Nome
                         name.textContent = album.name;
                         name.style.fontWeight = 'bold';
                         name.style.marginTop = '0.5rem';
 
-                        const artist = document.createElement('p');
+                        const artist = document.createElement('p'); // Artista
                         artist.textContent = album.artist;
                         artist.style.color = '#ffffe0';
+
+                        
+                        const saveButton = document.createElement('button'); // Botão de salvar
+                        saveButton.textContent = 'Salve aqui, ou na imagem';
+                        saveButton.style.backgroundColor = '#1c56a1';
+                        saveButton.style.color = 'white';
+                        saveButton.style.border = 'none';
+                        saveButton.style.padding = '0.3rem';
+                        saveButton.style.borderRadius = '5px';
+                        saveButton.style.cursor = 'pointer';
+                        saveButton.style.transition = 'background-color 0.2s';
+                        saveButton.onmouseover = () => saveButton.style.backgroundColor = '#1a4a8c';
+                        saveButton.onmouseout = () => saveButton.style.backgroundColor = '#1c56a1';
+                        saveButton.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url);
+
 
                         albumDiv.appendChild(img);
                         albumDiv.appendChild(name);
                         albumDiv.appendChild(artist);
+                        albumDiv.appendChild(saveButton);
                         divresults.appendChild(albumDiv);
                     });
                 } else {
@@ -172,7 +194,7 @@
                     localStorage.setItem('token', data.access_token); 
                     fecharModais();
                     
-                    console.log("Token guardado:", data.access_token);
+                    console.log("Token guardado!");
                 } else {
                     alert('Erro ao fazer login: ' + data.detail);
                 }
@@ -190,6 +212,37 @@
             }
 
             try {
+                const check = await fetch('http://localhost:8000/albuns/', {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const SavedAlbums = await check.json();
+
+                const exists = SavedAlbums.some(album => album.name === name && album.artist === artist);
+
+                if (exists) {
+                    const confirmOverwrite = confirm('Este álbum já está salvo. Deseja salvar novamente?');
+                    if (!confirmOverwrite) {
+                        return; // Sai da função se o usuário não quiser sobrescrever
+                    }
+                    else{
+                        const albumToUpdate = SavedAlbums.find(album => album.name === name && album.artist === artist);
+                        await fetch(`http://localhost:8000/albuns/${albumToUpdate.id}`, {
+                            method: 'PATCH',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ name: name, artist: artist, image_url: image_url })
+                        });
+                        alert('Álbum atualizado com sucesso!');
+                        return; // Sai da função após atualizar
+                    }
+                }
+
                 const response = await fetch('http://localhost:8000/albuns/', {
                     method: 'POST',
                     headers: { 
@@ -211,6 +264,84 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
+
+
+        async function abrirAlbuns(){
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Por favor, faça login para ver seus álbuns salvos.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/albuns/', {
+                    method: 'GET',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Álbuns salvos:', data);
+                    const divresults = document.getElementById('results');
+                    divresults.innerHTML = ''; // Limpa resultados anteriores
+                    if (data.length > 0) {
+                        data.forEach(album => {
+                            const albumDiv = document.createElement('div');
+                            albumDiv.style.width = '150px';
+                            albumDiv.style.textAlign = 'center';
+                            albumDiv.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+                            albumDiv.style.color='#fff';
+
+                            const img = document.createElement('img');
+                            img.src = album.image_url;
+                            img.alt = album.name;
+                            img.style.width = '100%';
+                            img.style.borderRadius = '10px';
+
+                            const name = document.createElement('p');
+                            name.textContent = album.name;
+                            name.style.fontWeight = 'bold';
+                            name.style.marginTop = '0.5rem';
+
+                            const artist = document.createElement('p');
+                            artist.textContent = album.artist;
+                            artist.style.color = '#ffffe0';
+
+                            albumDiv.appendChild(img);
+                            albumDiv.appendChild(name);
+                            albumDiv.appendChild(artist);
+
+                            divresults.appendChild(albumDiv);
+                        });
+                    } else {
+                        divresults.style.color = '#fff';
+                        divresults.textContent = 'Nenhum álbum salvo encontrado.';
+                    }
+                } else {
+                    alert('Erro ao buscar álbuns: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        async function abrirReviews(){
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = '';
+
+        }
+        
+        async function limpar(){
+            const divresults = document.getElementById('results');
+            divresults.innerHTML = '';
+        }
+
+
     </script>
 </body>
 </html>
