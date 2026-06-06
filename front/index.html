@@ -57,6 +57,10 @@
         </div>
     </div>
 
+    <div>
+        
+    </div>
+
     <div id="results" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-top: 2rem; max-width: 1240px; width:75%; margin: 2rem auto;">
         <!-- Resultados de busca aparecerão aqui -->
     </div>
@@ -103,24 +107,24 @@
                         artist.style.color = '#ffffe0';
 
                         
-                        const saveButton = document.createElement('button'); // Botão de salvar
-                        saveButton.textContent = 'Salve aqui, ou na imagem';
-                        saveButton.style.backgroundColor = '#1c56a1';
-                        saveButton.style.color = 'white';
-                        saveButton.style.border = 'none';
-                        saveButton.style.padding = '0.3rem';
-                        saveButton.style.borderRadius = '5px';
-                        saveButton.style.cursor = 'pointer';
-                        saveButton.style.transition = 'background-color 0.2s';
-                        saveButton.onmouseover = () => saveButton.style.backgroundColor = '#1a4a8c';
-                        saveButton.onmouseout = () => saveButton.style.backgroundColor = '#1c56a1';
-                        saveButton.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url);
+                        const reviewButton = document.createElement('button'); // Botão de salvar
+                        reviewButton.textContent = 'Salve aqui, ou na imagem';
+                        reviewButton.style.backgroundColor = '#1c56a1';
+                        reviewButton.style.color = 'white';
+                        reviewButton.style.border = 'none';
+                        reviewButton.style.padding = '0.3rem';
+                        reviewButton.style.borderRadius = '5px';
+                        reviewButton.style.cursor = 'pointer';
+                        reviewButton.style.transition = 'background-color 0.2s';
+                        reviewButton.onmouseover = () => reviewButton.style.backgroundColor = '#1a4a8c';
+                        reviewButton.onmouseout = () => reviewButton.style.backgroundColor = '#1c56a1';
+                        reviewButton.onclick = () => salvarAlbumNoBanco(album.name, album.artist, album.image_url);
 
 
                         albumDiv.appendChild(img);
                         albumDiv.appendChild(name);
                         albumDiv.appendChild(artist);
-                        albumDiv.appendChild(saveButton);
+                        albumDiv.appendChild(reviewButton);
                         divresults.appendChild(albumDiv);
                     });
                 } else {
@@ -203,7 +207,7 @@
                 alert('Erro de conexão com o servidor.');
             }
         }
-
+        // Salva o álbum no banco de dados do backend, associando-o ao usuário logado
         async function salvarAlbumNoBanco(name, artist, image_url) {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -212,6 +216,7 @@
             }
 
             try {
+                // Verifica se o álbum já existe para o usuário
                 const check = await fetch('http://localhost:8000/albuns/', {
                     method: 'GET',
                     headers: { 
@@ -222,12 +227,13 @@
                 const SavedAlbums = await check.json();
 
                 const exists = SavedAlbums.some(album => album.name === name && album.artist === artist);
-
+                // Se o álbum já existe, pergunta se o usuário quer sobrescrever
                 if (exists) {
                     const confirmOverwrite = confirm('Este álbum já está salvo. Deseja salvar novamente?');
                     if (!confirmOverwrite) {
                         return; // Sai da função se o usuário não quiser sobrescrever
                     }
+                    // Se o usuário quiser sobrescrever, faz um PATCH para atualizar o álbum existente
                     else{
                         const albumToUpdate = SavedAlbums.find(album => album.name === name && album.artist === artist);
                         await fetch(`http://localhost:8000/albuns/${albumToUpdate.id}`, {
@@ -242,7 +248,7 @@
                         return; // Sai da função após atualizar
                     }
                 }
-
+                // Se o álbum não existe, faz um POST para criar um novo álbum
                 const response = await fetch('http://localhost:8000/albuns/', {
                     method: 'POST',
                     headers: { 
@@ -301,6 +307,12 @@
                             img.alt = album.name;
                             img.style.width = '100%';
                             img.style.borderRadius = '10px';
+                            img.style.transition = 'transform 0.2s'; // Animação suave
+                            img.style.cursor = 'pointer';
+                            img.onmouseover = () => img.style.transform = 'scale(1.05)';
+                            img.onmouseout = () => img.style.transform = 'scale(1)';
+                            img.onclick = () => fazerReview(album.name, album.artist, album.image_url); // Função para abrir modal de review
+
 
                             const name = document.createElement('p');
                             name.textContent = album.name;
@@ -311,10 +323,24 @@
                             artist.textContent = album.artist;
                             artist.style.color = '#ffffe0';
 
+                            const reviewButton = document.createElement('button'); // Botão de salvar
+                            reviewButton.textContent = 'Faça uma Review!';
+                            reviewButton.style.backgroundColor = '#1c56a1';
+                            reviewButton.style.color = 'white';
+                            reviewButton.style.border = 'none';
+                            reviewButton.style.padding = '0.3rem';
+                            reviewButton.style.borderRadius = '5px';
+                            reviewButton.style.cursor = 'pointer';
+                            reviewButton.style.transition = 'background-color 0.2s';
+                            reviewButton.onmouseover = () => reviewButton.style.backgroundColor = '#1a4a8c';
+                            reviewButton.onmouseout = () => reviewButton.style.backgroundColor = '#1c56a1';
+                            reviewButton.onclick = () => fazerReview(album.name, album.artist, album.image_url);
+
+
                             albumDiv.appendChild(img);
                             albumDiv.appendChild(name);
                             albumDiv.appendChild(artist);
-
+                            albumDiv.appendChild(reviewButton);
                             divresults.appendChild(albumDiv);
                         });
                     } else {
@@ -333,6 +359,7 @@
         async function abrirReviews(){
             const divresults = document.getElementById('results');
             divresults.innerHTML = '';
+
 
         }
         

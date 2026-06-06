@@ -55,7 +55,8 @@ async def login(login_schema: loginSchema, session = Depends(session_grab)):
             "access_token": acess_token, 
             "refresh_token": refresh_token,
             "token_type": "bearer",
-            "user_id": usuario.id
+            "user_id": usuario.id,
+            "pfp": usuario.pfp
             }
     
 @auth_router.get("/auth")
